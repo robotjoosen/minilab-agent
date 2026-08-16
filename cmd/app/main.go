@@ -19,9 +19,11 @@ import (
 	"github.com/robotjoosen/minilab-agent/internal/docker"
 	"github.com/robotjoosen/minilab-agent/internal/exec"
 	"github.com/robotjoosen/minilab-agent/pkg/discovery"
+	"github.com/robotjoosen/minilab-agent/pkg/handler/capabilities"
+	"github.com/robotjoosen/minilab-agent/pkg/handler/metrics"
 	"github.com/robotjoosen/minilab-agent/pkg/healthstats"
-	"github.com/robotjoosen/minilab-agent/pkg/httpapi"
 	"github.com/robotjoosen/minilab-agent/pkg/mdnsadvertise"
+	"github.com/robotjoosen/minilab-agent/pkg/server"
 	"github.com/wagslane/go-rabbitmq"
 )
 
@@ -73,10 +75,16 @@ func main() {
 		Docker:  dockerClient,
 	}
 
-	server := &httpapi.Server{
-		Discoverer: discovery.NewCachingDiscoverer(aggregator, discovery.CacheTTL),
-		HostStats:  store,
+	discoverer := discovery.NewCachingDiscoverer(aggregator, discovery.CacheTTL)
+
+	capsHandler := &capabilities.Handler{
+		Discoverer: discoverer,
 		Hostname:   hostname,
+	}
+
+	metricsHandler := &metrics.Handler{
+		Discoverer: discoverer,
+		HostStats:  store,
 	}
 
 	_, portStr, err := net.SplitHostPort(e.HTTPListenAddr)
@@ -96,20 +104,18 @@ func main() {
 	}
 	defer closer.Close()
 
-	httpServer := &http.Server{Addr: e.HTTPListenAddr, Handler: server.Routes()}
-	go func() {
-		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			slog.Error("http server stopped", slog.String("error", err.Error()))
-		}
-	}()
+	srv := &server.Server{Port: portNum}
+	srv.InitialiseRoutes(map[string]http.HandlerFunc{
+		"GET /capabilities": capsHandler.Handle,
+		"GET /metrics":      metricsHandler.Handle,
+	})
+	srv.Run()
 
 	slog.Info("minilab-agent started", slog.String("http_addr", e.HTTPListenAddr))
 
 	<-ctx.Done()
 
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	_ = httpServer.Shutdown(shutdownCtx)
+	srv.Stop()
 }
 
 // connectMessageBus waits for the message bus to become reachable and then
