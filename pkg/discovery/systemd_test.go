@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/robotjoosen/minilab-agent/internal/discovery"
+	"github.com/robotjoosen/minilab-agent/pkg/discovery"
 )
 
 type fakeRunner struct {

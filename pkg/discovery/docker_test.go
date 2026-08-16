@@ -3,7 +3,7 @@ package discovery_test
 import (
 	"testing"
 
-	"github.com/robotjoosen/minilab-agent/internal/discovery"
+	"github.com/robotjoosen/minilab-agent/pkg/discovery"
 )
 
 type fakeDockerClient struct {

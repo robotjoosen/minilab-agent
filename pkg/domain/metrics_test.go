@@ -3,7 +3,7 @@ package domain_test
 import (
 	"testing"
 
-	"github.com/robotjoosen/minilab-agent/internal/domain"
+	"github.com/robotjoosen/minilab-agent/pkg/domain"
 )
 
 func TestFormatMetrics(t *testing.T) {
