@@ -36,5 +36,5 @@ func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/plain; version=0.0.4")
-	io.WriteString(w, formatMetrics(h.HostStats.Latest(), services))
+	io.WriteString(w, format(h.HostStats.Latest(), services))
 }

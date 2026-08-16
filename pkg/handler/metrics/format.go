@@ -8,7 +8,7 @@ import (
 	"github.com/robotjoosen/minilab-agent/pkg/domain"
 )
 
-func formatMetrics(host domain.HostStats, services []domain.Service) string {
+func format(host domain.HostStats, services []domain.Service) string {
 	var b strings.Builder
 
 	fmt.Fprintf(&b, "minilab_host_cpu_percent{mode=\"user\"} %g\n", host.CPUUser)
