@@ -19,6 +19,7 @@ REPO="robotjoosen/minilab-agent"
 SERVICE_NAME="minilab_agent"
 INSTALL_PATH="/usr/local/bin/minilab-agent"
 UNIT_PATH="/etc/systemd/system/${SERVICE_NAME}.service"
+VERSION_MARKER="/usr/local/bin/.minilab-agent-version"
 
 DEFAULT_MESSAGE_BUS_URL="amqp://guest:guest@localhost:5672"
 DEFAULT_HTTP_PORT="9100"
@@ -71,14 +72,19 @@ detect_arch() {
   esac
 }
 
-fetch_latest_release_asset_url() {
-  local goarch="$1" asset_name="minilab-agent-linux-${goarch}"
-  local release_json
-  release_json=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest") || {
+fetch_latest_release_json() {
+  curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" || {
     error "failed to reach GitHub releases API for ${REPO}"
     exit 1
   }
+}
 
+release_tag() {
+  printf '%s' "$1" | grep -o '"tag_name": *"[^"]*"' | head -1 | sed -E 's/.*"([^"]+)"$/\1/'
+}
+
+release_asset_url() {
+  local release_json="$1" goarch="$2" asset_name="minilab-agent-linux-${goarch}"
   local url
   url=$(printf '%s' "$release_json" | grep -o "\"browser_download_url\": *\"[^\"]*${asset_name}\"" | head -1 | sed -E 's/.*"([^"]+)"$/\1/')
 
@@ -101,9 +107,11 @@ main() {
   info "detected architecture: ${goarch}"
 
   info "looking up the latest minilab-agent release..."
-  local asset_url
-  asset_url=$(fetch_latest_release_asset_url "$goarch")
-  info "found: ${asset_url}"
+  local release_json tag asset_url
+  release_json=$(fetch_latest_release_json)
+  tag=$(release_tag "$release_json")
+  asset_url=$(release_asset_url "$release_json" "$goarch")
+  info "latest release: ${tag}"
 
   local tmp_binary
   tmp_binary=$(mktemp)
@@ -140,7 +148,8 @@ main() {
   if confirm "Install the binary to ${INSTALL_PATH}?"; then
     sudo cp "$tmp_binary" "$INSTALL_PATH"
     sudo chmod +x "$INSTALL_PATH"
-    info "binary installed"
+    echo "$tag" | sudo tee "$VERSION_MARKER" >/dev/null
+    info "binary installed (${tag})"
   else
     warn "skipped installing the binary -- aborting, nothing else to do"
     exit 0
