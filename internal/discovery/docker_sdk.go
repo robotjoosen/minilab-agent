@@ -4,7 +4,8 @@ import (
 	"context"
 	"strings"
 
-	"github.com/moby/moby/client"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/client"
 )
 
 type SDKDockerClient struct {
@@ -21,15 +22,15 @@ func NewSDKDockerClient() (*SDKDockerClient, error) {
 }
 
 func (d *SDKDockerClient) ListContainers() ([]Container, error) {
-	containers, err := d.cli.ContainerList(context.Background(), client.ContainerListOptions{All: true})
+	containers, err := d.cli.ContainerList(context.Background(), container.ListOptions{All: true})
 	if err != nil {
 		return nil, err
 	}
 
-	result := make([]Container, 0, len(containers.Items))
-	for _, c := range containers.Items {
+	result := make([]Container, 0, len(containers))
+	for _, c := range containers {
 		name := strings.TrimPrefix(firstOrEmpty(c.Names), "/")
-		result = append(result, Container{Name: name, Image: c.Image, State: string(c.State)})
+		result = append(result, Container{Name: name, Image: c.Image, State: c.State})
 	}
 
 	return result, nil
