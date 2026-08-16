@@ -179,7 +179,8 @@ main() {
   done
   echo
 
-  local tmp_binary
+  # Not `local` -- the EXIT trap below fires after main() returns, once its
+  # local scope is gone, so tmp_binary must still be visible at that point.
   tmp_binary=$(mktemp)
   trap 'rm -f "$tmp_binary"' EXIT
 
