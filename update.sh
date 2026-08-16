@@ -41,8 +41,10 @@ error() { printf '\033[1;31mERROR:\033[0m %s\n' "$*" >&2; }
 
 confirm() {
   # confirm "question" -- returns 0 (yes) or 1 (no). Defaults to no.
+  # Reads from /dev/tty, not stdin -- when this script runs via
+  # `curl ... | bash`, stdin is the script itself, not the terminal.
   local reply
-  read -r -p "$1 [y/N] " reply
+  read -r -p "$1 [y/N] " reply < /dev/tty
   case "$reply" in
     [yY][eE][sS]|[yY]) return 0 ;;
     *) return 1 ;;
@@ -50,9 +52,10 @@ confirm() {
 }
 
 prompt_with_default() {
-  # prompt_with_default "question" "default" -- echoes the chosen value
+  # prompt_with_default "question" "default" -- echoes the chosen value.
+  # Reads from /dev/tty for the same reason as confirm() above.
   local question="$1" default="$2" reply
-  read -r -p "$question [$default]: " reply
+  read -r -p "$question [$default]: " reply < /dev/tty
   if [ -z "$reply" ]; then
     echo "$default"
   else

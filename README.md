@@ -116,11 +116,25 @@ enabling/starting the service).
 To update later:
 
 ```bash
-./update.sh
+curl -fsSL https://raw.githubusercontent.com/robotjoosen/minilab-agent/main/update.sh | bash
 ```
 
 `update.sh` preserves whatever's already configured and only asks for values genuinely missing
 from the existing install (e.g. a setting a newer release added).
+
+To remove it entirely:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/robotjoosen/minilab-agent/main/uninstall.sh | bash
+```
+
+`uninstall.sh` stops and disables the service, then confirms before removing the unit file, the
+binary, and (optionally) the device's `docker` group membership it added.
+
+None of `install.sh`, `update.sh`, or `uninstall.sh` are published as release assets — they're
+fetched straight from `main` each time, same as the install command above. If you downloaded
+`install.sh` to disk instead of piping it, fetch the other two the same way rather than expecting
+them to already be sitting next to it.
 
 ## Configuration
 
