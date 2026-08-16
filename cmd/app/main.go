@@ -1,6 +1,4 @@
 // minilab-agent/cmd/app/main.go
-//go:build linux
-// +build linux
 
 package main
 
@@ -43,8 +41,22 @@ func main() {
 
 	store := &healthstats.Store{}
 
-	conn := connectMessageBus(e.MessagebusURL)
+	// The message bus connection retries for up to ~200s if RabbitMQ is
+	// unreachable. That must not block HTTP/mDNS from starting - a
+	// monitoring agent should keep answering /capabilities and /metrics
+	// even while the broker is down, so this runs in the background and
+	// the rest of main() proceeds regardless of its outcome.
 	go func() {
+		conn, err := connectMessageBus(ctx, e.MessagebusURL)
+		if err != nil {
+			if errors.Is(err, context.Canceled) {
+				slog.Info("message bus connection aborted due to shutdown", slog.String("error", err.Error()))
+				return
+			}
+			slog.Error("failed to connect to message bus", slog.String("error", err.Error()))
+			return
+		}
+
 		if err := healthstats.Subscribe(conn, e.MessageBusExchange, e.MessageBusRoutingKey, "minilab-agent-"+hostname, store, ctx); err != nil {
 			slog.Error("health subscriber stopped", slog.String("error", err.Error()))
 		}
@@ -62,7 +74,7 @@ func main() {
 	}
 
 	server := &httpapi.Server{
-		Discoverer: aggregator,
+		Discoverer: discovery.NewCachingDiscoverer(aggregator, discovery.CacheTTL),
 		HostStats:  store,
 		Hostname:   hostname,
 	}
@@ -100,21 +112,29 @@ func main() {
 	_ = httpServer.Shutdown(shutdownCtx)
 }
 
-func connectMessageBus(u string) *rabbitmq.Conn {
+// connectMessageBus waits for the message bus to become reachable and then
+// connects to it, retrying every 2 seconds up to maxConnectRetries times. It
+// is ctx-aware: a canceled ctx (e.g. shutdown signal) stops the retry loop
+// promptly instead of waiting out the full retry budget.
+func connectMessageBus(ctx context.Context, u string) (*rabbitmq.Conn, error) {
 	mbu, err := url.Parse(u)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	retries := 0
 	for {
 		if retries >= maxConnectRetries {
-			panic(errors.New("cannot connect to message bus"))
+			return nil, errors.New("cannot connect to message bus")
 		}
 
 		if _, err := net.DialTimeout("tcp", mbu.Host, 1*time.Second); err != nil {
 			retries++
-			<-time.NewTicker(2 * time.Second).C
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			case <-time.After(2 * time.Second):
+			}
 			continue
 		}
 
@@ -123,8 +143,8 @@ func connectMessageBus(u string) *rabbitmq.Conn {
 
 	conn, err := rabbit.NewConnection(u)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return conn
+	return conn, nil
 }

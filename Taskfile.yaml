@@ -21,6 +21,8 @@ tasks:
     cmds:
       - cp "{{.BINARY_PATH}}" "{{.INSTALL_PATH}}"
       - sudo chmod +x "{{.INSTALL_PATH}}"
+      # NOTE: docker group membership is host-root-equivalent (documented tradeoff, not enforced least-privilege)
+      - sudo usermod -aG docker $USER
       - |
           bash -c "cat > /etc/systemd/system/{{.SERVICE_NAME}}.service" <<EOF
           [Unit]
@@ -33,6 +35,9 @@ tasks:
           Restart=on-failure
           User=$USER
           WorkingDirectory=/
+          Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+          Environment=MODE=$MODE
+          Environment=LOG_LEVEL=$LOG_LEVEL
           Environment=MESSAGE_BUS_URL=$MESSAGE_BUS_URL
           Environment=MESSAGE_BUS_EXCHANGE=$MESSAGE_BUS_EXCHANGE
           Environment=MESSAGE_BUS_ROUTINGKEY=$MESSAGE_BUS_ROUTINGKEY

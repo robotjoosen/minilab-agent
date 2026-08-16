@@ -28,8 +28,10 @@ minilab_host_cpu_percent{mode="idle"} 84.5
 minilab_host_memory_bytes{state="used"} 1893000000
 minilab_host_memory_bytes{state="free"} 500000000
 minilab_host_memory_bytes{state="total"} 2393000000
-minilab_service_up{name="nodered.service",type="systemd",version="2026-08-01T10:00:00Z"} 1
-minilab_service_up{name="ollama",type="docker",version="0.4.2"} 1
+minilab_service_up{name="nodered.service",type="systemd"} 1
+minilab_service_up{name="ollama",type="docker"} 1
+minilab_service_info{name="nodered.service",type="systemd",version="2026-08-01T10:00:00Z"} 1
+minilab_service_info{name="ollama",type="docker",version="0.4.2"} 1
 `
 
 	if got != want {

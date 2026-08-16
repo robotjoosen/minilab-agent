@@ -25,7 +25,11 @@ func FormatMetrics(host HostStats, services []Service) string {
 		if s.Up {
 			up = 1
 		}
-		fmt.Fprintf(&b, "minilab_service_up{name=%q,type=%q,version=%q} %d\n", s.Name, s.Type, s.Version, up)
+		fmt.Fprintf(&b, "minilab_service_up{name=%q,type=%q} %d\n", s.Name, s.Type, up)
+	}
+
+	for _, s := range sorted {
+		fmt.Fprintf(&b, "minilab_service_info{name=%q,type=%q,version=%q} 1\n", s.Name, s.Type, s.Version)
 	}
 
 	return b.String()

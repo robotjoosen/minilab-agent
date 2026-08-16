@@ -44,7 +44,7 @@ func TestCapabilitiesEndpoint(t *testing.T) {
 	}
 
 	var body struct {
-		Device   string          `json:"device"`
+		Device   string           `json:"device"`
 		Services []domain.Service `json:"services"`
 	}
 	if err := json.NewDecoder(rec.Body).Decode(&body); err != nil {
@@ -71,7 +71,10 @@ func TestMetricsEndpoint(t *testing.T) {
 		t.Fatalf("expected 200, got %d", rec.Code)
 	}
 
-	if !strings.Contains(rec.Body.String(), `minilab_service_up{name="ollama",type="docker",version="0.4.2"} 1`) {
+	if !strings.Contains(rec.Body.String(), `minilab_service_up{name="ollama",type="docker"} 1`) {
+		t.Fatalf("unexpected metrics body: %s", rec.Body.String())
+	}
+	if !strings.Contains(rec.Body.String(), `minilab_service_info{name="ollama",type="docker",version="0.4.2"} 1`) {
 		t.Fatalf("unexpected metrics body: %s", rec.Body.String())
 	}
 }
