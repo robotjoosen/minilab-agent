@@ -151,6 +151,26 @@ defaults.
 | `HTTP_LISTEN_ADDR` | `:9100` | Where `/capabilities` and `/metrics` are served |
 | `MDNS_SERVICE_NAME` | `_minilab-agent._tcp` | mDNS service type this agent advertises as |
 
+## Scanning the network
+
+`cmd/scan` is a small debug tool: it browses the LAN for every minilab-agent instance
+over mDNS and prints what each one's `/capabilities` reports. Run it from any machine on the
+same network segment (mDNS multicast doesn't cross routed subnets/VLANs) — it isn't deployed
+alongside the agent itself:
+
+```bash
+go run ./cmd/scan
+```
+
+```
+rocket.local.  192.168.8.181:9100
+  nodered.service                systemd  up     2026-08-01T10:00:00Z
+  ollama                         docker   up     ollama/ollama:0.4.2
+
+beanie.local.  192.168.8.182:9100
+  ! failed to reach /capabilities: dial tcp 192.168.8.182:9100: connect: connection refused
+```
+
 ## Development
 
 Requires [Task](https://taskfile.dev) and Go (whatever version `go.mod` currently pins — it
@@ -167,6 +187,7 @@ gofmt -l .
 
 ```
 cmd/app/                  entrypoint — env loading, wiring everything together
+cmd/scan/         debug CLI — mDNS-scans the LAN and prints each agent's /capabilities
 pkg/domain/               shared data structs only (HostStats, Service) — no logic
 pkg/discovery/            CommandRunner/DockerClient interfaces, the discovery Aggregator, caching
 pkg/handler/capabilities/ GET /capabilities
