@@ -1,0 +1,48 @@
+# minilab-agent/Taskfile.yaml
+version: '3'
+
+dotenv: ['.env', '.env.dist']
+
+tasks:
+  build:
+    vars:
+      ARCH: arm64
+      OUTPUT_PATH: "./bin/minilab-agent"
+      APPLICATION_PATH: "./cmd/app"
+    cmds:
+      - env GOOS=linux GOARCH={{.ARCH}} go build -o {{.OUTPUT_PATH}} {{.APPLICATION_PATH}}
+
+  install:
+    vars:
+      BINARY_PATH: "./bin/minilab-agent"
+      INSTALL_PATH: "/usr/local/bin/minilab-agent"
+      SERVICE_NAME: "minilab_agent"
+    platforms: [linux/arm64, linux/arm]
+    cmds:
+      - cp "{{.BINARY_PATH}}" "{{.INSTALL_PATH}}"
+      - sudo chmod +x "{{.INSTALL_PATH}}"
+      - |
+          bash -c "cat > /etc/systemd/system/{{.SERVICE_NAME}}.service" <<EOF
+          [Unit]
+          Description=Mini Lab monitoring agent
+          After=network.target
+
+          [Service]
+          Type=simple
+          ExecStart={{.INSTALL_PATH}}
+          Restart=on-failure
+          User=$USER
+          WorkingDirectory=/
+          Environment=MESSAGE_BUS_URL=$MESSAGE_BUS_URL
+          Environment=MESSAGE_BUS_EXCHANGE=$MESSAGE_BUS_EXCHANGE
+          Environment=MESSAGE_BUS_ROUTINGKEY=$MESSAGE_BUS_ROUTINGKEY
+          Environment=HTTP_LISTEN_ADDR=$HTTP_LISTEN_ADDR
+          Environment=MDNS_SERVICE_NAME=$MDNS_SERVICE_NAME
+
+          [Install]
+          WantedBy=multi-user.target
+          EOF
+      - sudo systemctl daemon-reexec
+      - sudo systemctl daemon-reload
+      - sudo systemctl enable "{{.SERVICE_NAME}}"
+      - sudo systemctl start "{{.SERVICE_NAME}}"
