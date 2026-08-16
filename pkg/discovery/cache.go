@@ -14,8 +14,9 @@ import (
 // processes.
 const CacheTTL = 5 * time.Second
 
-// Discoverer is the interface CachingDiscoverer wraps. It matches
-// httpapi.ServiceDiscoverer so *Aggregator and *CachingDiscoverer are
+// Discoverer is the interface CachingDiscoverer wraps. It matches the
+// ServiceDiscoverer interfaces in pkg/handler/capabilities and
+// pkg/handler/metrics, so *Aggregator and *CachingDiscoverer are
 // interchangeable there.
 type Discoverer interface {
 	Discover() ([]domain.Service, error)

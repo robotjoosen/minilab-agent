@@ -4,6 +4,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -42,15 +43,15 @@ func (s *Server) Run() {
 		slog.Int("port", s.Port),
 	)
 
-	go func() {
-		s.server = &http.Server{
-			Addr:              fmt.Sprintf(":%d", s.Port),
-			Handler:           s.mux,
-			ReadHeaderTimeout: 5 * time.Second,
-		}
+	s.server = &http.Server{
+		Addr:              fmt.Sprintf(":%d", s.Port),
+		Handler:           s.mux,
+		ReadHeaderTimeout: 5 * time.Second,
+	}
 
-		if err := s.server.ListenAndServe(); err != nil {
-			return
+	go func() {
+		if err := s.server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			slog.Error("http server stopped", slog.String("error", err.Error()))
 		}
 	}()
 }
