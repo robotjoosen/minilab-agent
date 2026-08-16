@@ -1,6 +1,6 @@
 //go:build !linux
 
-package discovery
+package exec
 
 import "fmt"
 

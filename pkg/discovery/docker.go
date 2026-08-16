@@ -1,10 +1,8 @@
 package discovery
 
-type Container struct {
-	Name  string
-	Image string
-	State string // "running", "exited", etc.
-}
+import "github.com/robotjoosen/minilab-agent/internal/docker"
+
+type Container = docker.Container
 
 type DockerClient interface {
 	ListContainers() ([]Container, error)

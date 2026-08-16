@@ -1,10 +1,10 @@
 //go:build linux
 
-package discovery
+package exec
 
-import "os/exec"
+import osexec "os/exec"
 
 func execCommand(name string, args ...string) (string, error) {
-	out, err := exec.Command(name, args...).Output()
+	out, err := osexec.Command(name, args...).Output()
 	return string(out), err
 }

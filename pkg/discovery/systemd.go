@@ -11,13 +11,6 @@ type CommandRunner interface {
 	Run(name string, args ...string) (stdout string, err error)
 }
 
-type ExecCommandRunner struct{}
-
-func (ExecCommandRunner) Run(name string, args ...string) (string, error) {
-	out, err := execCommand(name, args...)
-	return out, err
-}
-
 type Unit struct {
 	Name      string
 	ExecStart string
