@@ -2,7 +2,7 @@ package httpapi
 
 import (
 	"encoding/json"
-	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/robotjoosen/minilab-agent/pkg/domain"
@@ -55,5 +55,5 @@ func (s *Server) handleMetrics(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/plain; version=0.0.4")
-	fmt.Fprint(w, domain.FormatMetrics(s.HostStats.Latest(), services))
+	io.WriteString(w, formatMetrics(s.HostStats.Latest(), services))
 }

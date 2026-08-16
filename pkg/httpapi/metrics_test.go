@@ -1,4 +1,4 @@
-package domain_test
+package httpapi
 
 import (
 	"testing"
@@ -20,7 +20,7 @@ func TestFormatMetrics(t *testing.T) {
 		{Name: "ollama", Type: "docker", Up: true, Version: "0.4.2"},
 	}
 
-	got := domain.FormatMetrics(host, services)
+	got := formatMetrics(host, services)
 
 	want := `minilab_host_cpu_percent{mode="user"} 12.4
 minilab_host_cpu_percent{mode="system"} 3.1
@@ -35,7 +35,7 @@ minilab_service_info{name="ollama",type="docker",version="0.4.2"} 1
 `
 
 	if got != want {
-		t.Fatalf("FormatMetrics() =\n%s\nwant:\n%s", got, want)
+		t.Fatalf("formatMetrics() =\n%s\nwant:\n%s", got, want)
 	}
 }
 
@@ -46,7 +46,7 @@ func TestFormatMetricsSortsServicesByName(t *testing.T) {
 		{Name: "aaa.service", Type: "systemd", Up: true},
 	}
 
-	got := domain.FormatMetrics(host, services)
+	got := formatMetrics(host, services)
 
 	aaaIdx := indexOf(got, `name="aaa.service"`)
 	zzzIdx := indexOf(got, `name="zzz.service"`)

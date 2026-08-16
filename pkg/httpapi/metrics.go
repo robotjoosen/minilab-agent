@@ -1,12 +1,14 @@
-package domain
+package httpapi
 
 import (
 	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/robotjoosen/minilab-agent/pkg/domain"
 )
 
-func FormatMetrics(host HostStats, services []Service) string {
+func formatMetrics(host domain.HostStats, services []domain.Service) string {
 	var b strings.Builder
 
 	fmt.Fprintf(&b, "minilab_host_cpu_percent{mode=\"user\"} %g\n", host.CPUUser)
@@ -16,7 +18,7 @@ func FormatMetrics(host HostStats, services []Service) string {
 	fmt.Fprintf(&b, "minilab_host_memory_bytes{state=\"free\"} %d\n", host.MemFree)
 	fmt.Fprintf(&b, "minilab_host_memory_bytes{state=\"total\"} %d\n", host.MemTotal)
 
-	sorted := make([]Service, len(services))
+	sorted := make([]domain.Service, len(services))
 	copy(sorted, services)
 	sort.Slice(sorted, func(i, j int) bool { return sorted[i].Name < sorted[j].Name })
 
