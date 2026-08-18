@@ -16,10 +16,18 @@ const CacheTTL = 5 * time.Second
 
 // Discoverer is the interface CachingDiscoverer wraps. It matches the
 // ServiceDiscoverer interfaces in pkg/handler/capabilities and
-// pkg/handler/metrics, so *Aggregator and *CachingDiscoverer are
+// pkg/handler/metrics, so DiscovererFunc(Discover) and *CachingDiscoverer are
 // interchangeable there.
 type Discoverer interface {
-	Discover() ([]domain.Service, error)
+	Discover() (domain.Services, error)
+}
+
+// DiscovererFunc adapts a plain func() (domain.Services, error), such as
+// Discover, to the Discoverer interface.
+type DiscovererFunc func() (domain.Services, error)
+
+func (f DiscovererFunc) Discover() (domain.Services, error) {
+	return f()
 }
 
 // CachingDiscoverer memoizes the last successful Discover() result for TTL,
@@ -34,7 +42,7 @@ type CachingDiscoverer struct {
 	Now func() time.Time
 
 	mu       sync.Mutex
-	services []domain.Service
+	services domain.Services
 	expiry   time.Time
 	valid    bool
 }
@@ -44,7 +52,7 @@ func NewCachingDiscoverer(d Discoverer, ttl time.Duration) *CachingDiscoverer {
 	return &CachingDiscoverer{Discoverer: d, TTL: ttl, Now: time.Now}
 }
 
-func (c *CachingDiscoverer) Discover() ([]domain.Service, error) {
+func (c *CachingDiscoverer) Discover() (domain.Services, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 

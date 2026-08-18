@@ -13,7 +13,7 @@ import (
 
 // ServiceDiscoverer discovers the services running on this host.
 type ServiceDiscoverer interface {
-	Discover() ([]domain.Service, error)
+	Discover() (domain.Services, error)
 }
 
 // HostStatsProvider reports the most recently observed host resource usage.

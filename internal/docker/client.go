@@ -36,7 +36,11 @@ func (c *Client) ListContainers() ([]Container, error) {
 	result := make([]Container, 0, len(containers))
 	for _, item := range containers {
 		name := strings.TrimPrefix(firstOrEmpty(item.Names), "/")
-		result = append(result, Container{Name: name, Image: item.Image, State: item.State})
+		result = append(result, Container{
+			Name:  name,
+			Image: item.Image,
+			State: item.State,
+		})
 	}
 
 	return result, nil

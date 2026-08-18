@@ -13,7 +13,7 @@ import (
 
 // ServiceDiscoverer discovers the services running on this host.
 type ServiceDiscoverer interface {
-	Discover() ([]domain.Service, error)
+	Discover() (domain.Services, error)
 }
 
 type Handler struct {
@@ -22,8 +22,8 @@ type Handler struct {
 }
 
 type response struct {
-	Device   string           `json:"device"`
-	Services []domain.Service `json:"services"`
+	Device   string          `json:"device"`
+	Services domain.Services `json:"services"`
 }
 
 func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) {

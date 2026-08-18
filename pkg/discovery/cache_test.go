@@ -10,17 +10,17 @@ import (
 
 type countingDiscoverer struct {
 	calls    int
-	services []domain.Service
+	services domain.Services
 	err      error
 }
 
-func (c *countingDiscoverer) Discover() ([]domain.Service, error) {
+func (c *countingDiscoverer) Discover() (domain.Services, error) {
 	c.calls++
 	return c.services, c.err
 }
 
 func TestCachingDiscovererServesFromCacheWithinTTL(t *testing.T) {
-	inner := &countingDiscoverer{services: []domain.Service{{Name: "ollama", Type: "docker", Up: true}}}
+	inner := &countingDiscoverer{services: domain.Services{{Name: "ollama", Type: "docker", State: domain.StateActive}}}
 	cache := discovery.NewCachingDiscoverer(inner, 5*time.Second)
 
 	now := time.Date(2026, 8, 16, 12, 0, 0, 0, time.UTC)
@@ -48,7 +48,7 @@ func TestCachingDiscovererServesFromCacheWithinTTL(t *testing.T) {
 }
 
 func TestCachingDiscovererRefreshesAfterTTLExpires(t *testing.T) {
-	inner := &countingDiscoverer{services: []domain.Service{{Name: "ollama", Type: "docker", Up: true}}}
+	inner := &countingDiscoverer{services: domain.Services{{Name: "ollama", Type: "docker", State: domain.StateActive}}}
 	cache := discovery.NewCachingDiscoverer(inner, 5*time.Second)
 
 	now := time.Date(2026, 8, 16, 12, 0, 0, 0, time.UTC)

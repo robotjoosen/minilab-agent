@@ -14,11 +14,11 @@ import (
 )
 
 type fakeDiscoverer struct {
-	services []domain.Service
+	services domain.Services
 	err      error
 }
 
-func (f fakeDiscoverer) Discover() ([]domain.Service, error) {
+func (f fakeDiscoverer) Discover() (domain.Services, error) {
 	return f.services, f.err
 }
 
@@ -32,8 +32,17 @@ func (f fakeHostStats) Latest() domain.HostStats {
 
 func TestHandleReturnsPrometheusMetrics(t *testing.T) {
 	h := &metrics.Handler{
-		Discoverer: fakeDiscoverer{services: []domain.Service{{Name: "ollama", Type: "docker", Up: true, Version: "0.4.2"}}},
-		HostStats:  fakeHostStats{stats: domain.HostStats{CPUUser: 10}},
+		Discoverer: fakeDiscoverer{
+			services: domain.Services{
+				{
+					Name:    "ollama",
+					Type:    "docker",
+					State:   domain.StateActive,
+					Version: "0.4.2",
+				},
+			},
+		},
+		HostStats: fakeHostStats{stats: domain.HostStats{CPUUser: 10}},
 	}
 
 	req := httptest.NewRequest(http.MethodGet, "/metrics", nil)

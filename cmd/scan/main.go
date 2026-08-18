@@ -20,8 +20,8 @@ import (
 )
 
 type capabilitiesResponse struct {
-	Device   string           `json:"device"`
-	Services []domain.Service `json:"services"`
+	Device   string          `json:"device"`
+	Services domain.Services `json:"services"`
 }
 
 func main() {
@@ -114,10 +114,6 @@ func printEntry(client *http.Client, entry *mdns.ServiceEntry) {
 	}
 
 	for _, svc := range caps.Services {
-		state := "down"
-		if svc.Up {
-			state = "up"
-		}
-		fmt.Printf("  %-30s %-8s %-6s %s\n", svc.Name, svc.Type, state, svc.Version)
+		fmt.Printf("  %-30s %-8s %-8s %s\n", svc.Name, svc.Type, svc.State.String(), svc.Version)
 	}
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/robotjoosen/minilab-agent/pkg/domain"
 )
 
-func format(host domain.HostStats, services []domain.Service) string {
+func format(host domain.HostStats, services domain.Services) string {
 	var b strings.Builder
 
 	fmt.Fprintf(&b, "minilab_host_cpu_percent{mode=\"user\"} %g\n", host.CPUUser)
@@ -18,13 +18,13 @@ func format(host domain.HostStats, services []domain.Service) string {
 	fmt.Fprintf(&b, "minilab_host_memory_bytes{state=\"free\"} %d\n", host.MemFree)
 	fmt.Fprintf(&b, "minilab_host_memory_bytes{state=\"total\"} %d\n", host.MemTotal)
 
-	sorted := make([]domain.Service, len(services))
+	sorted := make(domain.Services, len(services))
 	copy(sorted, services)
 	sort.Slice(sorted, func(i, j int) bool { return sorted[i].Name < sorted[j].Name })
 
 	for _, s := range sorted {
 		up := 0
-		if s.Up {
+		if s.State == domain.StateActive {
 			up = 1
 		}
 		fmt.Fprintf(&b, "minilab_service_up{name=%q,type=%q} %d\n", s.Name, s.Type, up)

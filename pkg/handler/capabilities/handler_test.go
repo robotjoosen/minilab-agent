@@ -13,17 +13,17 @@ import (
 )
 
 type fakeDiscoverer struct {
-	services []domain.Service
+	services domain.Services
 	err      error
 }
 
-func (f fakeDiscoverer) Discover() ([]domain.Service, error) {
+func (f fakeDiscoverer) Discover() (domain.Services, error) {
 	return f.services, f.err
 }
 
 func TestHandleReturnsCapabilities(t *testing.T) {
 	h := &capabilities.Handler{
-		Discoverer: fakeDiscoverer{services: []domain.Service{{Name: "ollama", Type: "docker", Up: true, Version: "0.4.2"}}},
+		Discoverer: fakeDiscoverer{services: domain.Services{{Name: "ollama", Type: "docker", State: domain.StateActive, Version: "0.4.2"}}},
 		Hostname:   "rocket",
 	}
 
@@ -40,8 +40,8 @@ func TestHandleReturnsCapabilities(t *testing.T) {
 	}
 
 	var body struct {
-		Device   string           `json:"device"`
-		Services []domain.Service `json:"services"`
+		Device   string          `json:"device"`
+		Services domain.Services `json:"services"`
 	}
 	if err := json.NewDecoder(rec.Body).Decode(&body); err != nil {
 		t.Fatalf("failed to decode response: %v", err)

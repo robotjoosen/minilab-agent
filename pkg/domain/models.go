@@ -9,9 +9,11 @@ type HostStats struct {
 	MemTotal  uint64
 }
 
-type Service struct {
+type Services []ServiceItem
+
+type ServiceItem struct {
 	Name    string
-	Type    string // "systemd" or "docker"
-	Up      bool
+	Type    Type
+	State   Status
 	Version string
 }

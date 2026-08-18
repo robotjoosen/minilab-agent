@@ -16,8 +16,6 @@ import (
 	"time"
 
 	"github.com/robotjoosen/go-rabbit"
-	"github.com/robotjoosen/minilab-agent/internal/docker"
-	"github.com/robotjoosen/minilab-agent/internal/exec"
 	"github.com/robotjoosen/minilab-agent/pkg/discovery"
 	"github.com/robotjoosen/minilab-agent/pkg/handler/capabilities"
 	"github.com/robotjoosen/minilab-agent/pkg/handler/metrics"
@@ -41,13 +39,8 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	store := &healthstats.Store{}
+	store := new(healthstats.Store)
 
-	// The message bus connection retries for up to ~200s if RabbitMQ is
-	// unreachable. That must not block HTTP/mDNS from starting - a
-	// monitoring agent should keep answering /capabilities and /metrics
-	// even while the broker is down, so this runs in the background and
-	// the rest of main() proceeds regardless of its outcome.
 	go func() {
 		conn, err := connectMessageBus(ctx, e.MessagebusURL)
 		if err != nil {
@@ -64,18 +57,7 @@ func main() {
 		}
 	}()
 
-	dockerClient, err := docker.New()
-	if err != nil {
-		slog.Error("failed to create docker client", slog.String("error", err.Error()))
-		os.Exit(1)
-	}
-
-	aggregator := &discovery.Aggregator{
-		Systemd: exec.New(),
-		Docker:  dockerClient,
-	}
-
-	discoverer := discovery.NewCachingDiscoverer(aggregator, discovery.CacheTTL)
+	discoverer := discovery.NewCachingDiscoverer(discovery.DiscovererFunc(discovery.Discover), discovery.CacheTTL)
 
 	capsHandler := &capabilities.Handler{
 		Discoverer: discoverer,
@@ -87,15 +69,7 @@ func main() {
 		HostStats:  store,
 	}
 
-	_, portStr, err := net.SplitHostPort(e.HTTPListenAddr)
-	if err != nil {
-		panic(err)
-	}
-
-	portNum, err := strconv.Atoi(portStr)
-	if err != nil {
-		panic(err)
-	}
+	portNum := mustParseHostPort(e.HTTPListenAddr)
 
 	closer, err := mdnsadvertise.Start(e.MDNSServiceName, hostname, portNum)
 	if err != nil {
@@ -118,10 +92,6 @@ func main() {
 	srv.Stop()
 }
 
-// connectMessageBus waits for the message bus to become reachable and then
-// connects to it, retrying every 2 seconds up to maxConnectRetries times. It
-// is ctx-aware: a canceled ctx (e.g. shutdown signal) stops the retry loop
-// promptly instead of waiting out the full retry budget.
 func connectMessageBus(ctx context.Context, u string) (*rabbitmq.Conn, error) {
 	mbu, err := url.Parse(u)
 	if err != nil {
@@ -153,4 +123,18 @@ func connectMessageBus(ctx context.Context, u string) (*rabbitmq.Conn, error) {
 	}
 
 	return conn, nil
+}
+
+func mustParseHostPort(host string) int {
+	_, portStr, err := net.SplitHostPort(host)
+	if err != nil {
+		panic(err)
+	}
+
+	portNum, err := strconv.Atoi(portStr)
+	if err != nil {
+		panic(err)
+	}
+
+	return portNum
 }

@@ -15,9 +15,9 @@ func TestFormat(t *testing.T) {
 		MemFree:   500000000,
 		MemTotal:  2393000000,
 	}
-	services := []domain.Service{
-		{Name: "nodered.service", Type: "systemd", Up: true, Version: "2026-08-01T10:00:00Z"},
-		{Name: "ollama", Type: "docker", Up: true, Version: "0.4.2"},
+	services := domain.Services{
+		{Name: "nodered.service", Type: "systemd", State: domain.StateActive, Version: "2026-08-01T10:00:00Z"},
+		{Name: "ollama", Type: "docker", State: domain.StateActive, Version: "0.4.2"},
 	}
 
 	got := format(host, services)
@@ -41,9 +41,9 @@ minilab_service_info{name="ollama",type="docker",version="0.4.2"} 1
 
 func TestFormatSortsServicesByName(t *testing.T) {
 	host := domain.HostStats{}
-	services := []domain.Service{
-		{Name: "zzz.service", Type: "systemd", Up: false},
-		{Name: "aaa.service", Type: "systemd", Up: true},
+	services := domain.Services{
+		{Name: "zzz.service", Type: "systemd", State: domain.StateInactive},
+		{Name: "aaa.service", Type: "systemd", State: domain.StateActive},
 	}
 
 	got := format(host, services)
