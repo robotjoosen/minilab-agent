@@ -7,7 +7,7 @@
 # update an existing install.
 #
 # Usage: run this directly on the target device (rocket, beanie, socks, ...):
-#   ./install.sh
+#   ./scripts/install.sh
 #
 # Requires: curl, sudo, systemctl. Expects GitHub releases at
 # github.com/robotjoosen/minilab-agent to publish binary assets named

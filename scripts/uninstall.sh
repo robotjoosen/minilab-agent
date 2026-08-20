@@ -5,7 +5,7 @@
 # update.sh.
 #
 # Usage: run this directly on the device where minilab-agent is installed:
-#   ./uninstall.sh
+#   ./scripts/uninstall.sh
 #
 # Requires: sudo, systemctl.
 

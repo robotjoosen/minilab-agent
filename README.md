@@ -96,13 +96,13 @@ details, not a bare 500:
 On the target device:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/robotjoosen/minilab-agent/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/robotjoosen/minilab-agent/main/scripts/install.sh | bash
 ```
 
 Or download and inspect it first (recommended for anything piping into a shell):
 
 ```bash
-curl -fsSLO https://raw.githubusercontent.com/robotjoosen/minilab-agent/main/install.sh
+curl -fsSLO https://raw.githubusercontent.com/robotjoosen/minilab-agent/main/scripts/install.sh
 chmod +x install.sh
 ./install.sh
 ```
@@ -116,7 +116,7 @@ enabling/starting the service).
 To update later:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/robotjoosen/minilab-agent/main/update.sh | bash
+curl -fsSL https://raw.githubusercontent.com/robotjoosen/minilab-agent/main/scripts/update.sh | bash
 ```
 
 `update.sh` preserves whatever's already configured and only asks for values genuinely missing
@@ -125,7 +125,7 @@ from the existing install (e.g. a setting a newer release added).
 To remove it entirely:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/robotjoosen/minilab-agent/main/uninstall.sh | bash
+curl -fsSL https://raw.githubusercontent.com/robotjoosen/minilab-agent/main/scripts/uninstall.sh | bash
 ```
 
 `uninstall.sh` stops and disables the service, then confirms before removing the unit file, the
@@ -134,7 +134,7 @@ binary, and (optionally) the device's `docker` group membership it added.
 None of `install.sh`, `update.sh`, or `uninstall.sh` are published as release assets — they're
 fetched straight from `main` each time, same as the install command above. If you downloaded
 `install.sh` to disk instead of piping it, fetch the other two the same way rather than expecting
-them to already be sitting next to it.
+them to already be sitting next to it — all three live under `scripts/`.
 
 ## Configuration
 
@@ -198,6 +198,7 @@ pkg/mdnsadvertise/        mDNS presence responder
 pkg/env/                  env-to-struct loading (shared with go-health-service's own copy)
 internal/docker/          Docker SDK client wrapper (transport detail, not part of the public API)
 internal/exec/            os/exec wrapper for shelling out to systemctl (ditto)
+scripts/                  install.sh / update.sh / uninstall.sh
 ```
 
 `internal/` is reserved specifically for low-level transport wrappers like these two — everything

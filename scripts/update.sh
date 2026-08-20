@@ -4,11 +4,11 @@
 #
 # Preserves whatever's already configured in the systemd unit -- it only
 # asks interactively for values that are genuinely missing (e.g. a var
-# added by a newer release that this install predates). Run install.sh
+# added by a newer release that this install predates). Run scripts/install.sh
 # first if minilab-agent isn't installed yet.
 #
 # Usage: run this directly on the target device (rocket, beanie, socks, ...):
-#   ./update.sh
+#   ./scripts/update.sh
 #
 # Requires: curl, sudo, systemctl. Expects GitHub releases at
 # github.com/robotjoosen/minilab-agent to publish binary assets named
