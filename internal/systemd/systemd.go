@@ -11,8 +11,12 @@ import (
 
 var execStartPathPattern = regexp.MustCompile(`path=(\S+)`)
 
+type runner interface {
+	Run(name string, args ...string) (string, error)
+}
+
 type SystemD struct {
-	runner *exec.Client
+	runner runner
 }
 
 func New() SystemD {
@@ -53,7 +57,7 @@ func (s SystemD) GetProcesses() (Services, error) {
 	services := make(Services, 0, len(names))
 	for i, name := range names {
 		var version string
-		if v, verr := s.versionFromBinary(execStarts[i]); verr == nil {
+		if v, verr := s.versionFromBinary(execStarts[name]); verr == nil {
 			version = v
 		}
 
@@ -72,27 +76,43 @@ func (s SystemD) GetProcesses() (Services, error) {
 // systemctl invocation covering all units, rather than one invocation per
 // unit. A host can have 80-150 units, and forking systemctl per unit adds
 // up to several seconds of latency serving /capabilities and /metrics.
-func (s SystemD) execStarts(names []string) []string {
-	paths := make([]string, len(names))
+//
+// Units are matched by their Id= property rather than by output line
+// position: a unit can have zero or several ExecStart= directives (each
+// rendered on its own line), so the number of output lines does not equal
+// the number of requested units and a positional match silently attributes
+// one unit's binary to another.
+func (s SystemD) execStarts(names []string) map[string]string {
+	paths := make(map[string]string, len(names))
 	if len(names) == 0 {
 		return paths
 	}
 
 	args := append([]string{"show"}, names...)
-	args = append(args, "--property=ExecStart", "--value")
+	args = append(args, "--property=Id", "--property=ExecStart")
 
 	out, err := s.runner.Run("systemctl", args...)
 	if err != nil {
 		return paths
 	}
 
-	lines := strings.Split(out, "\n")
-	for i := range names {
-		if i >= len(lines) {
-			break
-		}
-		if m := execStartPathPattern.FindStringSubmatch(lines[i]); len(m) == 2 {
-			paths[i] = m[1]
+	for _, block := range strings.Split(out, "\n\n") {
+		var id string
+		for _, line := range strings.Split(block, "\n") {
+			if v, ok := strings.CutPrefix(line, "Id="); ok {
+				id = v
+				continue
+			}
+
+			if id == "" {
+				continue
+			}
+			if _, exists := paths[id]; exists {
+				continue // keep the first ExecStart= entry for units with several
+			}
+			if m := execStartPathPattern.FindStringSubmatch(line); len(m) == 2 {
+				paths[id] = m[1]
+			}
 		}
 	}
 
