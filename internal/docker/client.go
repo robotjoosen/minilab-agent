@@ -2,6 +2,7 @@ package docker
 
 import (
 	"context"
+	"os"
 	"strings"
 	"time"
 
@@ -23,6 +24,27 @@ type Container struct {
 
 type Client struct {
 	cli *client.Client
+}
+
+// Available reports whether a Docker daemon looks reachable on this host,
+// without dialing it. It checks for the DOCKER_HOST unix socket on disk, so
+// hosts that never run Docker (systemd-only agents) can skip discovery
+// entirely instead of waiting out ListContainers' timeout on every request.
+// A non-unix DOCKER_HOST (e.g. tcp://) can't be probed this cheaply, so it
+// is reported as available and left to ListContainers to determine.
+func Available() bool {
+	host := os.Getenv("DOCKER_HOST")
+	if host == "" {
+		host = client.DefaultDockerHost
+	}
+
+	u, err := client.ParseHostURL(host)
+	if err != nil || u.Scheme != "unix" {
+		return true
+	}
+
+	_, err = os.Stat(u.Host)
+	return err == nil
 }
 
 func New() (*Client, error) {

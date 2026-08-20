@@ -38,6 +38,10 @@ func Discover() (domain.Services, error) {
 }
 
 func listDockerContainers() (domain.Services, error) {
+	if !docker.Available() {
+		return nil, nil
+	}
+
 	d, err := docker.New()
 	if err != nil {
 		return nil, err
