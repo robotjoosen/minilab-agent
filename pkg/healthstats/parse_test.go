@@ -15,11 +15,14 @@ func TestParseHealthMessage(t *testing.T) {
 		"disks": []
 	}`)
 
-	got, err := healthstats.ParseHealthMessage(raw)
+	host, got, err := healthstats.ParseHealthMessage(raw)
 	if err != nil {
 		t.Fatalf("ParseHealthMessage() error = %v", err)
 	}
 
+	if host != "rocket" {
+		t.Fatalf("unexpected host: %q", host)
+	}
 	if got.CPUUser != 12.4 || got.CPUSystem != 3.1 || got.CPUIdle != 84.5 {
 		t.Fatalf("unexpected cpu stats: %+v", got)
 	}
@@ -29,7 +32,7 @@ func TestParseHealthMessage(t *testing.T) {
 }
 
 func TestParseHealthMessageInvalidJSON(t *testing.T) {
-	_, err := healthstats.ParseHealthMessage([]byte(`not json`))
+	_, _, err := healthstats.ParseHealthMessage([]byte(`not json`))
 	if err == nil {
 		t.Fatal("expected an error for invalid JSON, got nil")
 	}

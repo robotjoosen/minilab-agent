@@ -52,7 +52,7 @@ func main() {
 			return
 		}
 
-		if err := healthstats.Subscribe(conn, e.MessageBusExchange, e.MessageBusRoutingKey, "minilab-agent-"+hostname, store, ctx); err != nil {
+		if err := healthstats.Subscribe(conn, e.MessageBusExchange, e.MessageBusRoutingKey, "minilab-agent-"+hostname, hostname, store, ctx); err != nil {
 			slog.Error("health subscriber stopped", slog.String("error", err.Error()))
 		}
 	}()

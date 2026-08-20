@@ -8,15 +8,19 @@ import (
 )
 
 // ParseHealthMessage decodes the JSON payload published by go-health-service's health.ping
-// messages (health-service's own exported healthdomain.SysUsageMessage shape) into this
-// agent's domain.HostStats.
-func ParseHealthMessage(raw []byte) (domain.HostStats, error) {
+// messages (health-service's own exported healthdomain.SysUsageMessage shape) into the
+// sending host's name and this agent's domain.HostStats.
+//
+// The name is returned separately rather than folded into domain.HostStats because every
+// agent's queue receives every host's ping (see Subscribe) -- callers need it to tell whose
+// stats they're looking at before deciding whether to keep them.
+func ParseHealthMessage(raw []byte) (host string, stats domain.HostStats, err error) {
 	var msg healthdomain.SysUsageMessage
 	if err := json.Unmarshal(raw, &msg); err != nil {
-		return domain.HostStats{}, err
+		return "", domain.HostStats{}, err
 	}
 
-	return domain.HostStats{
+	return msg.Name, domain.HostStats{
 		CPUUser:   msg.Cpu.User,
 		CPUSystem: msg.Cpu.System,
 		CPUIdle:   msg.Cpu.Idle,
