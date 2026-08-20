@@ -1,9 +1,12 @@
 package mdnsadvertise
 
-import "testing"
+import (
+	"context"
+	"testing"
+)
 
 func TestOutboundIPIsNotLoopback(t *testing.T) {
-	ip, err := outboundIP()
+	ip, err := outboundIP(context.Background())
 	if err != nil {
 		t.Fatalf("outboundIP() error = %v", err)
 	}

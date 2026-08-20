@@ -172,7 +172,8 @@ main() {
     sudo bash -c "cat > '${UNIT_PATH}'" <<EOF
 [Unit]
 Description=Mini Lab monitoring agent
-After=network.target
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple

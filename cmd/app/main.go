@@ -71,7 +71,7 @@ func main() {
 
 	portNum := mustParseHostPort(e.HTTPListenAddr)
 
-	closer, err := mdnsadvertise.Start(e.MDNSServiceName, hostname, portNum)
+	closer, err := mdnsadvertise.Start(ctx, e.MDNSServiceName, hostname, portNum)
 	if err != nil {
 		slog.Error("failed to start mDNS responder", slog.String("error", err.Error()))
 		os.Exit(1)
