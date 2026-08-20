@@ -5,6 +5,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net"
 	"net/http"
@@ -27,7 +28,20 @@ import (
 
 const maxConnectRetries = 100
 
+// version is set at build time via -ldflags "-X main.version=vX.Y.Z" (see
+// Taskfile.yaml and .github/workflows/release.yml). It stays "dev" for
+// unstamped local builds.
+var version = "dev"
+
 func main() {
+	// Must be checked before loadEnv/initLog: --version has to work even
+	// when required environment variables (e.g. message bus config) are
+	// missing, and must never start the server or touch a port.
+	if len(os.Args) > 1 && os.Args[1] == "--version" {
+		fmt.Println(version)
+		return
+	}
+
 	e := loadEnv()
 	initLog(e.LogLevel)
 

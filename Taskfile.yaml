@@ -9,8 +9,10 @@ tasks:
       ARCH: arm64
       OUTPUT_PATH: "./bin/minilab-agent"
       APPLICATION_PATH: "./cmd/app"
+      VERSION:
+        sh: git describe --tags --always --dirty 2>/dev/null || echo dev
     cmds:
-      - env GOOS=linux GOARCH={{.ARCH}} go build -o {{.OUTPUT_PATH}} {{.APPLICATION_PATH}}
+      - env GOOS=linux GOARCH={{.ARCH}} go build -ldflags "-X main.version={{.VERSION}}" -o {{.OUTPUT_PATH}} {{.APPLICATION_PATH}}
 
   install:
     vars:
