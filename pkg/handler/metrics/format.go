@@ -18,6 +18,14 @@ func format(host domain.HostStats, services domain.Services) string {
 	fmt.Fprintf(&b, "minilab_host_memory_bytes{state=\"free\"} %d\n", host.MemFree)
 	fmt.Fprintf(&b, "minilab_host_memory_bytes{state=\"total\"} %d\n", host.MemTotal)
 
+	temperatures := make([]domain.Temperature, len(host.Temperatures))
+	copy(temperatures, host.Temperatures)
+	sort.Slice(temperatures, func(i, j int) bool { return temperatures[i].Name < temperatures[j].Name })
+
+	for _, t := range temperatures {
+		fmt.Fprintf(&b, "minilab_host_temperature_celsius{sensor=%q} %g\n", t.Name, t.Celsius)
+	}
+
 	sorted := make(domain.Services, len(services))
 	copy(sorted, services)
 	sort.Slice(sorted, func(i, j int) bool { return sorted[i].Name < sorted[j].Name })

@@ -1,12 +1,18 @@
 package domain
 
 type HostStats struct {
-	CPUUser   float64
-	CPUSystem float64
-	CPUIdle   float64
-	MemUsed   uint64
-	MemFree   uint64
-	MemTotal  uint64
+	CPUUser      float64
+	CPUSystem    float64
+	CPUIdle      float64
+	MemUsed      uint64
+	MemFree      uint64
+	MemTotal     uint64
+	Temperatures []Temperature
+}
+
+type Temperature struct {
+	Name    string
+	Celsius float64
 }
 
 type Services []ServiceItem

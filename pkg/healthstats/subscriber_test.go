@@ -1,6 +1,7 @@
 package healthstats
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/robotjoosen/minilab-agent/pkg/domain"
@@ -38,7 +39,7 @@ func TestHandleMessageSkipsStoreWhenHostDoesNotMatch(t *testing.T) {
 	if got != rabbitmq.Ack {
 		t.Fatalf("handleMessage() = %v, want Ack", got)
 	}
-	if latest := store.Latest(); latest != (domain.HostStats{}) {
+	if latest := store.Latest(); !reflect.DeepEqual(latest, domain.HostStats{}) {
 		t.Fatalf("expected store to be left untouched, got %+v", latest)
 	}
 }
@@ -51,7 +52,7 @@ func TestHandleMessageDiscardsInvalidJSON(t *testing.T) {
 	if got != rabbitmq.NackDiscard {
 		t.Fatalf("handleMessage() = %v, want NackDiscard", got)
 	}
-	if latest := store.Latest(); latest != (domain.HostStats{}) {
+	if latest := store.Latest(); !reflect.DeepEqual(latest, domain.HostStats{}) {
 		t.Fatalf("expected store to be left untouched, got %+v", latest)
 	}
 }

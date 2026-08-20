@@ -14,6 +14,9 @@ func TestFormat(t *testing.T) {
 		MemUsed:   1893000000,
 		MemFree:   500000000,
 		MemTotal:  2393000000,
+		Temperatures: []domain.Temperature{
+			{Name: "cpu-thermal", Celsius: 45.3},
+		},
 	}
 	services := domain.Services{
 		{Name: "nodered.service", Type: "systemd", State: domain.StateActive, Version: "2026-08-01T10:00:00Z"},
@@ -28,6 +31,7 @@ minilab_host_cpu_percent{mode="idle"} 84.5
 minilab_host_memory_bytes{state="used"} 1893000000
 minilab_host_memory_bytes{state="free"} 500000000
 minilab_host_memory_bytes{state="total"} 2393000000
+minilab_host_temperature_celsius{sensor="cpu-thermal"} 45.3
 minilab_service_up{name="nodered.service",type="systemd"} 1
 minilab_service_up{name="ollama",type="docker"} 1
 minilab_service_info{name="nodered.service",type="systemd",version="2026-08-01T10:00:00Z"} 1
@@ -52,6 +56,23 @@ func TestFormatSortsServicesByName(t *testing.T) {
 	zzzIdx := indexOf(got, `name="zzz.service"`)
 	if aaaIdx == -1 || zzzIdx == -1 || aaaIdx > zzzIdx {
 		t.Fatalf("expected aaa.service before zzz.service, got:\n%s", got)
+	}
+}
+
+func TestFormatSortsTemperaturesByName(t *testing.T) {
+	host := domain.HostStats{
+		Temperatures: []domain.Temperature{
+			{Name: "zzz-thermal", Celsius: 30},
+			{Name: "aaa-thermal", Celsius: 40},
+		},
+	}
+
+	got := format(host, nil)
+
+	aaaIdx := indexOf(got, `sensor="aaa-thermal"`)
+	zzzIdx := indexOf(got, `sensor="zzz-thermal"`)
+	if aaaIdx == -1 || zzzIdx == -1 || aaaIdx > zzzIdx {
+		t.Fatalf("expected aaa-thermal before zzz-thermal, got:\n%s", got)
 	}
 }
 

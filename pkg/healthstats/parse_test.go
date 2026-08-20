@@ -1,8 +1,10 @@
 package healthstats_test
 
 import (
+	"reflect"
 	"testing"
 
+	"github.com/robotjoosen/minilab-agent/pkg/domain"
 	"github.com/robotjoosen/minilab-agent/pkg/healthstats"
 )
 
@@ -12,7 +14,8 @@ func TestParseHealthMessage(t *testing.T) {
 		"memory": {"free": 500000000, "used": 1893000000, "total": 2393000000},
 		"cpu": {"system": 3.1, "idle": 84.5, "user": 12.4},
 		"network_interfaces": [],
-		"disks": []
+		"disks": [],
+		"temperatures": [{"name": "cpu-thermal", "celsius": 45.3}]
 	}`)
 
 	host, got, err := healthstats.ParseHealthMessage(raw)
@@ -28,6 +31,10 @@ func TestParseHealthMessage(t *testing.T) {
 	}
 	if got.MemUsed != 1893000000 || got.MemFree != 500000000 || got.MemTotal != 2393000000 {
 		t.Fatalf("unexpected memory stats: %+v", got)
+	}
+	want := []domain.Temperature{{Name: "cpu-thermal", Celsius: 45.3}}
+	if !reflect.DeepEqual(got.Temperatures, want) {
+		t.Fatalf("unexpected temperatures: %+v, want %+v", got.Temperatures, want)
 	}
 }
 

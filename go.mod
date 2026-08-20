@@ -4,9 +4,11 @@ go 1.26.0
 
 require (
 	github.com/docker/docker v28.5.2+incompatible
+	github.com/go-viper/mapstructure/v2 v2.5.0
 	github.com/hashicorp/mdns v1.0.7
-	github.com/robotjoosen/go-health-service v0.0.0-20260816132331-71193362c0aa
+	github.com/robotjoosen/go-health-service v0.0.2-0.20260820180726-c42d12d9f902
 	github.com/robotjoosen/go-rabbit v0.0.2
+	github.com/spf13/viper v1.21.0
 	github.com/wagslane/go-rabbitmq v0.16.1
 )
 
@@ -23,8 +25,8 @@ require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/mackerelio/go-osstat v0.2.6 // indirect
 	github.com/miekg/dns v1.1.72 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/sys/atomicwriter v0.1.0 // indirect
@@ -40,7 +42,6 @@ require (
 	github.com/spf13/afero v1.15.0 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
-	github.com/spf13/viper v1.21.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.60.0 // indirect
