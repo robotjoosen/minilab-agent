@@ -97,22 +97,24 @@ func (s SystemD) execStarts(names []string) map[string]string {
 	}
 
 	for _, block := range strings.Split(out, "\n\n") {
-		var id string
+		var id, path string
 		for _, line := range strings.Split(block, "\n") {
+			// systemctl orders properties by its own internal fixed order,
+			// not by the order given on the command line, so Id= cannot be
+			// assumed to come before ExecStart= within a block.
 			if v, ok := strings.CutPrefix(line, "Id="); ok {
 				id = v
 				continue
 			}
+			if path == "" {
+				if m := execStartPathPattern.FindStringSubmatch(line); len(m) == 2 {
+					path = m[1] // first ExecStart= entry, for units with several
+				}
+			}
+		}
 
-			if id == "" {
-				continue
-			}
-			if _, exists := paths[id]; exists {
-				continue // keep the first ExecStart= entry for units with several
-			}
-			if m := execStartPathPattern.FindStringSubmatch(line); len(m) == 2 {
-				paths[id] = m[1]
-			}
+		if id != "" {
+			paths[id] = path
 		}
 	}
 

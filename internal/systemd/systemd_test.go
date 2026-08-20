@@ -41,6 +41,22 @@ func TestExecStarts_MultipleExecStartEntries(t *testing.T) {
 	}
 }
 
+// TestExecStarts_ExecStartBeforeId reproduces the real ordering observed on
+// rocket: systemctl show orders properties by its own fixed internal order
+// regardless of --property flag order, so ExecStart= appears before Id=.
+func TestExecStarts_ExecStartBeforeId(t *testing.T) {
+	showOut := "ExecStart={ path=/usr/local/bin/health-service ; argv[]=/usr/local/bin/health-service ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }\n" +
+		"Id=health_service.service\n"
+
+	s := SystemD{runner: &fakeRunner{showOut: showOut}}
+	paths := s.execStarts([]string{"health_service.service"})
+
+	want := "/usr/local/bin/health-service"
+	if paths["health_service.service"] != want {
+		t.Errorf("execStarts()[health_service.service] = %q, want %q", paths["health_service.service"], want)
+	}
+}
+
 func TestExecStarts_NoExecStartEntry(t *testing.T) {
 	showOut := "Id=a.service\n" +
 		"ExecStart=\n" +
